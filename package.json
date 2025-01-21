@@ -1,0 +1,50 @@
+{
+  "name": "@orsonkit/wx-ci",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "wechat miniprogram ci",
+  "author": "openorson <openorson@hotmail.com> (https://github.com/openorson/)",
+  "license": "MIT",
+  "homepage": "https://github.com/openorson/wx-ci",
+  "keywords": [
+    "wx-ci"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "wx-ci": "./bin/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^13.0.0",
+    "jimp": "^1.6.0",
+    "jiti": "^2.4.2",
+    "jsqr": "^1.4.0",
+    "miniprogram-ci": "^2.0.10",
+    "ora": "^8.1.1",
+    "uqr": "^0.1.2",
+    "zx": "^8.3.0"
+  },
+  "devDependencies": {
+    "@orsonkit/eslint": "^2.1.2",
+    "@orsonkit/tsconfig": "^1.1.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
