@@ -61,8 +61,8 @@ export function Program() {
         const appId = config.appId
         const version = options.version
         const description = options.description ?? `upload by ci, ${username}, ${new Date().toLocaleString()}`
-        const projectPath = resolve(dirname(path), config.projectPath)
-        const privateKeyPath = resolve(dirname(path), config.privateKeyPath)
+        const projectPath = config.projectPath.startsWith('/') ? config.projectPath : resolve(dirname(path), config.projectPath)
+        const privateKeyPath = config.privateKeyPath.startsWith('/') ? config.privateKeyPath : resolve(dirname(path), config.privateKeyPath)
 
         const project = new CI.Project({
           appid: appId,
@@ -97,31 +97,37 @@ ${chalk.green('配置路径(configPath):')} ${path}
 ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
 
         if (config.webhook?.workWeixin) {
-          await callWorkWeixinWebHook({
-            type: 'upload',
-            url: config.webhook.workWeixin,
-            info: {
-              操作ID: actionId,
-              操作人: username,
-              代码分支: branch,
-              最新提交: commit,
-              应用ID: appId,
-              版本号: version,
-              版本描述: description,
-              环境: env,
-              情景模式: mode,
-            },
-          })
+          try {
+            await callWorkWeixinWebHook({
+              type: 'upload',
+              url: config.webhook.workWeixin,
+              info: {
+                操作ID: actionId,
+                操作人: username,
+                代码分支: branch,
+                最新提交: commit,
+                应用ID: appId,
+                版本号: version,
+                版本描述: description,
+                环境: env,
+                情景模式: mode,
+              },
+            })
+          }
+          catch (error) {
+            logger.error(new Error('企业微信通知发送失败', { cause: error }))
+            exit(0)
+          }
+        }
+        else {
+          exit(0)
         }
       }
 
       catch (error) {
         spinner.stop()
         logger.error(new Error('上传失败', { cause: error }))
-      }
-
-      finally {
-        exit()
+        exit(1)
       }
     })
 
@@ -162,8 +168,8 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
         const appId = config.appId
         const version = options.version
         const description = options.description ?? `preview by ci, ${username}, ${new Date().toLocaleString()}`
-        const projectPath = resolve(dirname(path), config.projectPath)
-        const privateKeyPath = resolve(dirname(path), config.privateKeyPath)
+        const projectPath = config.projectPath.startsWith('/') ? config.projectPath : resolve(dirname(path), config.projectPath)
+        const privateKeyPath = config.privateKeyPath.startsWith('/') ? config.privateKeyPath : resolve(dirname(path), config.privateKeyPath)
         const outputPath = resolve(tmpdir(), `${actionId}.jpg`)
         const [pagePath, searchQuery] = options.url ? (options.url as string).split('?') : [void 0, void 0]
         const scene = options.scene
@@ -223,37 +229,43 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}
 ${chalk.green('二维码临时保存路径(outputPath):')} ${outputPath}`)
 
         if (config.webhook?.workWeixin) {
-          await callWorkWeixinWebHook({
-            type: 'preview',
-            url: config.webhook.workWeixin,
-            info: {
-              操作ID: actionId,
-              操作人: username,
-              代码分支: branch,
-              最新提交: commit,
-              应用ID: appId,
-              版本号: version,
-              版本描述: description,
-              环境: env,
-              情景模式: mode,
-              预览页面: options.url ?? 'default',
-              预览场景: scene ?? '1011',
-            },
-            image: {
-              base64: readFileSync(outputPath).toString('base64'),
-              md5: createHash('md5').update(readFileSync(outputPath)).digest('hex'),
-            },
-          })
+          try {
+            await callWorkWeixinWebHook({
+              type: 'preview',
+              url: config.webhook.workWeixin,
+              info: {
+                操作ID: actionId,
+                操作人: username,
+                代码分支: branch,
+                最新提交: commit,
+                应用ID: appId,
+                版本号: version,
+                版本描述: description,
+                环境: env,
+                情景模式: mode,
+                预览页面: options.url ?? 'default',
+                预览场景: scene ?? '1011',
+              },
+              image: {
+                base64: readFileSync(outputPath).toString('base64'),
+                md5: createHash('md5').update(readFileSync(outputPath)).digest('hex'),
+              },
+            })
+          }
+          catch (error) {
+            logger.error(new Error('企业微信通知发送失败', { cause: error }))
+            exit(0)
+          }
+        }
+        else {
+          exit(0)
         }
       }
 
       catch (error) {
         spinner.stop()
         logger.error(new Error('预览失败', { cause: error }))
-      }
-
-      finally {
-        exit()
+        exit(1)
       }
     })
 

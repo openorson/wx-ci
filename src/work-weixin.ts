@@ -4,7 +4,7 @@ export async function callWorkWeixinWebHook(options: {
   info: Record<string, string>
   image?: { base64: string, md5: string }
 }) {
-  await fetch(options.url, {
+  const response = await fetch(options.url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -20,8 +20,12 @@ export async function callWorkWeixinWebHook(options: {
     }),
   })
 
+  if (!response.ok) {
+    throw new Error('fetch request failed', { cause: response })
+  }
+
   if (options.type === 'preview' && options.image) {
-    await fetch(options.url, {
+    const response = await fetch(options.url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -34,5 +38,9 @@ export async function callWorkWeixinWebHook(options: {
         },
       }),
     })
+
+    if (!response.ok) {
+      throw new Error('fetch request failed', { cause: response })
+    }
   }
 }

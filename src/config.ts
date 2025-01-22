@@ -7,17 +7,30 @@ import { createJiti } from 'jiti'
 const jiti = createJiti(import.meta.url)
 
 export interface ConfigArgs {
+  /** 环境 */
   env: string
+  /** 情景模式 */
   mode: string
 }
 
 export interface Config {
+  /** 小程序APP ID */
   appId: string
+  /** 小程序项目路径 */
   projectPath: string
+  /** 小程序上传密钥 */
   privateKeyPath: string
+  /** 通知地址 */
   webhook?: {
+    /** 企业微信 */
     workWeixin?: string
   }
+  /**
+   * - 准备上传或预览
+   * - 在上传或预览前执行
+   * @param $ zx shell
+   * @param spinner terminal spinner
+   */
   prepare?: ($: Shell & Options, spinner: Ora) => void | Promise<void>
 }
 
@@ -29,7 +42,7 @@ export function defineConfig(config: Config | ((args: ConfigArgs) => Config | Pr
 }
 
 export async function getConfig(path: string, defaultPath: string, options: ConfigArgs) {
-  const configFilePath = path ? resolve(cwd(), path) : defaultPath
+  const configFilePath = path ? path.startsWith('/') ? path : resolve(cwd(), path) : defaultPath
 
   const configModule = (await jiti.import(configFilePath)) as any
   const config = (await configModule.default(options)) as Config
