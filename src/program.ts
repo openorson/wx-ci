@@ -29,8 +29,8 @@ export function Program() {
   program.command('upload')
     .description('upload')
     .option('-c, --config <string>', '配置文件路径', `./${DEFAULT_CONFIG_NAME}`)
-    .option('-e, --env <string>', '环境', 'production')
-    .option('-m, --mode <string>', '模式', 'default')
+    .requiredOption('-e, --env <string>', '环境')
+    .option('-m, --mode <string>', '情景模式', 'default')
     .requiredOption('-v, --version <string>', '版本号')
     .option('-d, --description <string>', '版本描述')
     .action(async (options) => {
@@ -55,6 +55,8 @@ export function Program() {
         }
 
         const username = (await $`git config user.name`).stdout.trim()
+        const branch = (await $`git branch --show-current`).stdout.trim()
+        const commit = (await $`echo $(git log -1 --format="%H %B")`).stdout.trim()
 
         const appId = config.appId
         const version = options.version
@@ -83,11 +85,14 @@ export function Program() {
 
         logger.log(`${chalk.green('上传成功')}
 ${chalk.green('操作ID(actionId):')} ${actionId}
+${chalk.green('操作人(username):')} ${username}
+${chalk.green('代码分支(branch):')} ${branch}
+${chalk.green('最新提交(commit):')} ${commit}
 ${chalk.green('应用ID(appId):')} ${appId}
 ${chalk.green('版本号(version):')} ${version}
 ${chalk.green('版本描述(description):')} ${description}
 ${chalk.green('环境(env):')} ${env}
-${chalk.green('模式(mode):')} ${mode}
+${chalk.green('情景模式(mode):')} ${mode}
 ${chalk.green('配置路径(configPath):')} ${path}
 ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
 
@@ -97,11 +102,14 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
             url: config.webhook.workWeixin,
             info: {
               操作ID: actionId,
+              操作人: username,
+              代码分支: branch,
+              最新提交: commit,
               应用ID: appId,
               版本号: version,
               版本描述: description,
               环境: env,
-              模式: mode,
+              情景模式: mode,
             },
           })
         }
@@ -109,7 +117,7 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
 
       catch (error) {
         spinner.stop()
-        console.error(new Error('上传失败', { cause: error }))
+        logger.error(new Error('上传失败', { cause: error }))
       }
 
       finally {
@@ -120,8 +128,8 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
   program.command('preview')
     .description('preview')
     .option('-c, --config <string>', '配置文件路径', `./${DEFAULT_CONFIG_NAME}`)
-    .option('-e, --env <string>', '环境', 'production')
-    .option('-m, --mode <string>', '模式', 'default')
+    .requiredOption('-e, --env <string>', '环境')
+    .option('-m, --mode <string>', '情景模式', 'default')
     .requiredOption('-v, --version <string>', '版本号')
     .option('-d, --description <string>', '版本描述')
     .option('-u, --url <string>', '预览页面')
@@ -148,6 +156,8 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
         }
 
         const username = (await $`git config user.name`).stdout.trim()
+        const branch = (await $`git branch --show-current`).stdout.trim()
+        const commit = (await $`echo $(git log -1 --format="%H %B")`).stdout.trim()
 
         const appId = config.appId
         const version = options.version
@@ -199,10 +209,13 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
         logger.log(`\n${chalk.green('预览成功')}
 ${chalk.green('应用ID(appId):')} ${appId}
 ${chalk.green('操作ID(actionId):')} ${actionId}
+${chalk.green('操作人(username):')} ${username}
+${chalk.green('代码分支(branch):')} ${branch}
+${chalk.green('最新提交(commit):')} ${commit}
 ${chalk.green('版本号(version):')} ${version}
 ${chalk.green('版本描述(description):')} ${description}
 ${chalk.green('环境(env):')} ${env}
-${chalk.green('模式(mode):')} ${mode}
+${chalk.green('情景模式(mode):')} ${mode}
 ${chalk.green('预览页面(url):')} ${options.url ?? 'default'}
 ${chalk.green('预览场景(scene):')} ${scene ?? '1011'}
 ${chalk.green('配置路径(configPath):')} ${path}
@@ -215,11 +228,14 @@ ${chalk.green('二维码临时保存路径(outputPath):')} ${outputPath}`)
             url: config.webhook.workWeixin,
             info: {
               操作ID: actionId,
+              操作人: username,
+              代码分支: branch,
+              最新提交: commit,
               应用ID: appId,
               版本号: version,
               版本描述: description,
               环境: env,
-              模式: mode,
+              情景模式: mode,
               预览页面: options.url ?? 'default',
               预览场景: scene ?? '1011',
             },
@@ -233,7 +249,7 @@ ${chalk.green('二维码临时保存路径(outputPath):')} ${outputPath}`)
 
       catch (error) {
         spinner.stop()
-        console.error(new Error('预览失败', { cause: error }))
+        logger.error(new Error('预览失败', { cause: error }))
       }
 
       finally {
