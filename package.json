@@ -1,7 +1,7 @@
 {
   "name": "@orsonkit/wx-ci",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "wechat miniprogram ci",
   "author": "openorson <openorson@hotmail.com> (https://github.com/openorson/)",
   "license": "MIT",
