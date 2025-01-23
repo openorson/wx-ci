@@ -47,12 +47,17 @@ export function Program() {
         const { path, config } = await getConfig(
           options.config,
           DEFAULT_CONFIG_PATH,
-          { actionId, env, mode },
+          {
+            actionId,
+            env,
+            mode,
+            tools: { $: zx, spinner },
+          },
         )
 
         if (config.prepare) {
           spinner.start('正在执行上传前置操作...')
-          await config.prepare(zx, spinner)
+          await config.prepare()
           spinner.start('正在上传...')
         }
 
@@ -176,12 +181,17 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
         const { path, config } = await getConfig(
           options.config,
           DEFAULT_CONFIG_PATH,
-          { actionId, env, mode },
+          {
+            actionId,
+            env,
+            mode,
+            tools: { $: zx, spinner },
+          },
         )
 
         if (config.prepare) {
           spinner.start('正在执行预览前置操作...')
-          await config.prepare(zx, spinner)
+          await config.prepare()
           spinner.start('正在生成预览二维码...')
         }
 

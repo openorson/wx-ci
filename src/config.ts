@@ -14,6 +14,13 @@ export interface ConfigArgs {
   env: string
   /** 情景模式 */
   mode: string
+  /** 工具 */
+  tools: {
+    /** 命令行工具 */
+    $: Shell & Options
+    /** 命令行加载器 */
+    spinner: Ora
+  }
 }
 
 export interface Config {
@@ -31,10 +38,8 @@ export interface Config {
   /**
    * - 准备上传或预览
    * - 在上传或预览前执行
-   * @param $ zx shell
-   * @param spinner terminal spinner
    */
-  prepare?: ($: Shell & Options, spinner: Ora) => void | Promise<void>
+  prepare?: () => void | Promise<void>
   /**
    * 上传二维码
    * @param buffer 二维码 buffer
