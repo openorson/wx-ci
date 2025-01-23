@@ -10,7 +10,7 @@ import jsQR from 'jsqr'
 import CI from 'miniprogram-ci'
 import ora from 'ora'
 import { renderANSI } from 'uqr'
-import { $ } from 'zx'
+import { $ as zx } from 'zx'
 import { getConfig } from './config'
 import { logger } from './logger'
 import { callWorkWeixinWebHook } from './work-weixin'
@@ -20,6 +20,8 @@ export function Program() {
   const DEFAULT_CONFIG_PATH = `${cwd()}/${DEFAULT_CONFIG_NAME}`
 
   const { version, description } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
+
+  const $ = zx({ quiet: true })
 
   program
     .name('wx-ci')
@@ -50,13 +52,31 @@ export function Program() {
 
         if (config.prepare) {
           spinner.start('正在执行上传前置操作...')
-          await config.prepare($, spinner)
+          await config.prepare(zx, spinner)
           spinner.start('正在上传...')
         }
 
-        const username = (await $`git config user.name`).stdout.trim()
-        const branch = (await $`git branch --show-current`).stdout.trim()
-        const commit = (await $`echo $(git log -1 --format="%H %B")`).stdout.trim()
+        let username = 'unknown'
+        const gitlabUserNameProcess = (await $`echo $GITLAB_USER_NAME`)
+        if (gitlabUserNameProcess.exitCode === 0) {
+          username = gitlabUserNameProcess.stdout.trim()
+        }
+        else {
+          const gitUserNameProcess = (await $`git config user.name`)
+          gitUserNameProcess.exitCode === 0 && (username = gitUserNameProcess.stdout.trim())
+        }
+
+        let branch = 'unknown'
+        const branchProcess = (await $`git branch --show-current`)
+        branchProcess.exitCode === 0 && (branch = branchProcess.stdout.trim())
+
+        let commitId = 'unknown'
+        const commitIdProcess = (await $`echo $(git log -1 --format="%H")`)
+        commitIdProcess.exitCode === 0 && (commitId = commitIdProcess.stdout.trim())
+
+        let commitMessage = 'unknown'
+        const commitMessageProcess = (await $`echo $(git log -1 --format="%B")`)
+        commitMessageProcess.exitCode === 0 && (commitMessage = commitMessageProcess.stdout.trim())
 
         const appId = config.appId
         const version = options.version
@@ -87,7 +107,8 @@ export function Program() {
 ${chalk.green('操作ID(actionId):')} ${actionId}
 ${chalk.green('操作人(username):')} ${username}
 ${chalk.green('代码分支(branch):')} ${branch}
-${chalk.green('最新提交(commit):')} ${commit}
+${chalk.green('最新提交ID(commitId):')} ${commitId}
+${chalk.green('最新提交信息(commitMessage):')} ${commitMessage}
 ${chalk.green('应用ID(appId):')} ${appId}
 ${chalk.green('版本号(version):')} ${version}
 ${chalk.green('版本描述(description):')} ${description}
@@ -105,7 +126,8 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
                 操作ID: actionId,
                 操作人: username,
                 代码分支: branch,
-                最新提交: commit,
+                最新提交ID: commitId,
+                最新提交信息: commitMessage,
                 应用ID: appId,
                 版本号: version,
                 版本描述: description,
@@ -116,6 +138,8 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
           }
           catch (error) {
             logger.error(new Error('企业微信通知发送失败', { cause: error }))
+          }
+          finally {
             exit(0)
           }
         }
@@ -157,13 +181,31 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
 
         if (config.prepare) {
           spinner.start('正在执行预览前置操作...')
-          await config.prepare($, spinner)
+          await config.prepare(zx, spinner)
           spinner.start('正在生成预览二维码...')
         }
 
-        const username = (await $`git config user.name`).stdout.trim()
-        const branch = (await $`git branch --show-current`).stdout.trim()
-        const commit = (await $`echo $(git log -1 --format="%H %B")`).stdout.trim()
+        let username = 'unknown'
+        const gitlabUserNameProcess = (await $`echo $GITLAB_USER_NAME`)
+        if (gitlabUserNameProcess.exitCode === 0) {
+          username = gitlabUserNameProcess.stdout.trim()
+        }
+        else {
+          const gitUserNameProcess = (await $`git config user.name`)
+          gitUserNameProcess.exitCode === 0 && (username = gitUserNameProcess.stdout.trim())
+        }
+
+        let branch = 'unknown'
+        const branchProcess = (await $`git branch --show-current`)
+        branchProcess.exitCode === 0 && (branch = branchProcess.stdout.trim())
+
+        let commitId = 'unknown'
+        const commitIdProcess = (await $`echo $(git log -1 --format="%H")`)
+        commitIdProcess.exitCode === 0 && (commitId = commitIdProcess.stdout.trim())
+
+        let commitMessage = 'unknown'
+        const commitMessageProcess = (await $`echo $(git log -1 --format="%B")`)
+        commitMessageProcess.exitCode === 0 && (commitMessage = commitMessageProcess.stdout.trim())
 
         const appId = config.appId
         const version = options.version
@@ -217,7 +259,8 @@ ${chalk.green('应用ID(appId):')} ${appId}
 ${chalk.green('操作ID(actionId):')} ${actionId}
 ${chalk.green('操作人(username):')} ${username}
 ${chalk.green('代码分支(branch):')} ${branch}
-${chalk.green('最新提交(commit):')} ${commit}
+${chalk.green('最新提交ID(commitId):')} ${commitId}
+${chalk.green('最新提交信息(commitMessage):')} ${commitMessage}
 ${chalk.green('版本号(version):')} ${version}
 ${chalk.green('版本描述(description):')} ${description}
 ${chalk.green('环境(env):')} ${env}
@@ -237,7 +280,8 @@ ${chalk.green('二维码临时保存路径(outputPath):')} ${outputPath}`)
                 操作ID: actionId,
                 操作人: username,
                 代码分支: branch,
-                最新提交: commit,
+                最新提交ID: commitId,
+                最新提交信息: commitMessage,
                 应用ID: appId,
                 版本号: version,
                 版本描述: description,
@@ -246,14 +290,18 @@ ${chalk.green('二维码临时保存路径(outputPath):')} ${outputPath}`)
                 预览页面: options.url ?? 'default',
                 预览场景: scene ?? '1011',
               },
-              image: {
-                base64: readFileSync(outputPath).toString('base64'),
-                md5: createHash('md5').update(readFileSync(outputPath)).digest('hex'),
-              },
+              image: config.qrCodeUpload
+                ? await config.qrCodeUpload(readFileSync(outputPath))
+                : {
+                    base64: readFileSync(outputPath).toString('base64'),
+                    md5: createHash('md5').update(readFileSync(outputPath)).digest('hex'),
+                  },
             })
           }
           catch (error) {
             logger.error(new Error('企业微信通知发送失败', { cause: error }))
+          }
+          finally {
             exit(0)
           }
         }

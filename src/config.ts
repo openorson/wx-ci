@@ -1,3 +1,4 @@
+import type { Buffer } from 'node:buffer'
 import type { Ora } from 'ora'
 import type { Options, Shell } from 'zx'
 import { resolve } from 'node:path'
@@ -32,6 +33,11 @@ export interface Config {
    * @param spinner terminal spinner
    */
   prepare?: ($: Shell & Options, spinner: Ora) => void | Promise<void>
+  /**
+   * 上传二维码
+   * @param buffer 二维码 buffer
+   */
+  qrCodeUpload?: (buffer: Buffer) => string | Promise<string>
 }
 
 export function defineConfig(config: Config | ((args: ConfigArgs) => Config | Promise<Config>)) {
