@@ -35,6 +35,7 @@ export function Program() {
     .option('-m, --mode <string>', '情景模式', 'default')
     .requiredOption('-v, --version <string>', '版本号')
     .option('-d, --description <string>', '版本描述')
+    .option('-k, --private-key <string>', '上传密钥路径')
     .action(async (options) => {
       const spinner = ora('正在上传...').start()
 
@@ -87,7 +88,12 @@ export function Program() {
         const version = options.version
         const description = options.description ?? `upload by ci, ${username}, ${new Date().toLocaleString()}`
         const projectPath = config.projectPath.startsWith('/') ? config.projectPath : resolve(dirname(path), config.projectPath)
-        const privateKeyPath = config.privateKeyPath.startsWith('/') ? config.privateKeyPath : resolve(dirname(path), config.privateKeyPath)
+
+        let privateKeyPath = options.privateKey || config.privateKeyPath
+        if (!privateKeyPath) {
+          throw new Error('缺少上传密钥路径')
+        }
+        privateKeyPath = privateKeyPath.startsWith('/') ? privateKeyPath : resolve(dirname(path), privateKeyPath)
 
         const project = new CI.Project({
           appid: appId,
@@ -169,6 +175,7 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
     .option('-d, --description <string>', '版本描述')
     .option('-u, --url <string>', '预览页面')
     .option('-s, --scene <string>', '场景值')
+    .option('-k, --private-key <string>', '上传密钥路径')
     .action(async (options) => {
       const spinner = ora('正在生成预览二维码...').start()
 
@@ -221,7 +228,12 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
         const version = options.version
         const description = options.description ?? `preview by ci, ${username}, ${new Date().toLocaleString()}`
         const projectPath = config.projectPath.startsWith('/') ? config.projectPath : resolve(dirname(path), config.projectPath)
-        const privateKeyPath = config.privateKeyPath.startsWith('/') ? config.privateKeyPath : resolve(dirname(path), config.privateKeyPath)
+
+        let privateKeyPath = options.privateKey || config.privateKeyPath
+        if (!privateKeyPath) {
+          throw new Error('缺少上传密钥路径')
+        }
+        privateKeyPath = privateKeyPath.startsWith('/') ? privateKeyPath : resolve(dirname(path), privateKeyPath)
 
         const tmpDir = resolve(tmpdir(), 'wx-ci')
         existsSync(tmpDir) || mkdirSync(tmpDir)

@@ -28,8 +28,8 @@ export interface Config {
   appId: string
   /** 小程序项目路径 */
   projectPath: string
-  /** 小程序上传密钥 */
-  privateKeyPath: string
+  /** 小程序上传密钥路径 */
+  privateKeyPath?: string
   /** 通知地址 */
   webhook?: {
     /** 企业微信 */
