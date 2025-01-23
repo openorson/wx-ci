@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { cwd, exit } from 'node:process'
@@ -47,7 +47,7 @@ export function Program() {
         const { path, config } = await getConfig(
           options.config,
           DEFAULT_CONFIG_PATH,
-          { env, mode },
+          { actionId, env, mode },
         )
 
         if (config.prepare) {
@@ -57,25 +57,25 @@ export function Program() {
         }
 
         let username = 'unknown'
-        const gitlabUserNameProcess = (await $`echo $GITLAB_USER_NAME`)
+        const gitlabUserNameProcess = (await $`echo $GITLAB_USER_NAME`.nothrow())
         if (gitlabUserNameProcess.exitCode === 0) {
           username = gitlabUserNameProcess.stdout.trim()
         }
         else {
-          const gitUserNameProcess = (await $`git config user.name`)
+          const gitUserNameProcess = (await $`git config user.name`.nothrow())
           gitUserNameProcess.exitCode === 0 && (username = gitUserNameProcess.stdout.trim())
         }
 
         let branch = 'unknown'
-        const branchProcess = (await $`git branch --show-current`)
+        const branchProcess = (await $`git branch --show-current`.nothrow())
         branchProcess.exitCode === 0 && (branch = branchProcess.stdout.trim())
 
         let commitId = 'unknown'
-        const commitIdProcess = (await $`echo $(git log -1 --format="%H")`)
+        const commitIdProcess = (await $`echo $(git log -1 --format="%H")`.nothrow())
         commitIdProcess.exitCode === 0 && (commitId = commitIdProcess.stdout.trim())
 
         let commitMessage = 'unknown'
-        const commitMessageProcess = (await $`echo $(git log -1 --format="%B")`)
+        const commitMessageProcess = (await $`echo $(git log -1 --format="%B")`.nothrow())
         commitMessageProcess.exitCode === 0 && (commitMessage = commitMessageProcess.stdout.trim())
 
         const appId = config.appId
@@ -176,7 +176,7 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
         const { path, config } = await getConfig(
           options.config,
           DEFAULT_CONFIG_PATH,
-          { env, mode },
+          { actionId, env, mode },
         )
 
         if (config.prepare) {
@@ -186,25 +186,25 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
         }
 
         let username = 'unknown'
-        const gitlabUserNameProcess = (await $`echo $GITLAB_USER_NAME`)
+        const gitlabUserNameProcess = (await $`echo $GITLAB_USER_NAME`.nothrow())
         if (gitlabUserNameProcess.exitCode === 0) {
           username = gitlabUserNameProcess.stdout.trim()
         }
         else {
-          const gitUserNameProcess = (await $`git config user.name`)
+          const gitUserNameProcess = (await $`git config user.name`.nothrow())
           gitUserNameProcess.exitCode === 0 && (username = gitUserNameProcess.stdout.trim())
         }
 
         let branch = 'unknown'
-        const branchProcess = (await $`git branch --show-current`)
+        const branchProcess = (await $`git branch --show-current`.nothrow())
         branchProcess.exitCode === 0 && (branch = branchProcess.stdout.trim())
 
         let commitId = 'unknown'
-        const commitIdProcess = (await $`echo $(git log -1 --format="%H")`)
+        const commitIdProcess = (await $`echo $(git log -1 --format="%H")`.nothrow())
         commitIdProcess.exitCode === 0 && (commitId = commitIdProcess.stdout.trim())
 
         let commitMessage = 'unknown'
-        const commitMessageProcess = (await $`echo $(git log -1 --format="%B")`)
+        const commitMessageProcess = (await $`echo $(git log -1 --format="%B")`.nothrow())
         commitMessageProcess.exitCode === 0 && (commitMessage = commitMessageProcess.stdout.trim())
 
         const appId = config.appId
@@ -212,7 +212,11 @@ ${chalk.green('项目路径(projectPath):')} ${projectPath}`)
         const description = options.description ?? `preview by ci, ${username}, ${new Date().toLocaleString()}`
         const projectPath = config.projectPath.startsWith('/') ? config.projectPath : resolve(dirname(path), config.projectPath)
         const privateKeyPath = config.privateKeyPath.startsWith('/') ? config.privateKeyPath : resolve(dirname(path), config.privateKeyPath)
-        const outputPath = resolve(tmpdir(), `${actionId}.jpg`)
+
+        const tmpDir = resolve(tmpdir(), 'wx-ci')
+        existsSync(tmpDir) || mkdirSync(tmpDir)
+        const outputPath = resolve(tmpDir, `${actionId}.jpg`)
+
         const [pagePath, searchQuery] = options.url ? (options.url as string).split('?') : [void 0, void 0]
         const scene = options.scene
 

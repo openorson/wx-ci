@@ -8,6 +8,8 @@ import { createJiti } from 'jiti'
 const jiti = createJiti(import.meta.url)
 
 export interface ConfigArgs {
+  /** 操作 ID */
+  actionId: string
   /** 环境 */
   env: string
   /** 情景模式 */
